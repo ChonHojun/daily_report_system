@@ -2,6 +2,7 @@ package controllers.reports;
 
 import java.io.IOException;
 import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -40,11 +41,15 @@ public class ReportsUpdateServlet extends HttpServlet {
         if(_token != null && _token.equals(request.getSession().getId())) {
             EntityManager em = DBUtil.createEntityManager();
 
+            //セッションスコープからIDを取得し、データベースから一件のみを取得
             Report r = em.find(Report.class, (Integer)(request.getSession().getAttribute("report_id")));
 
+            //フォーム内容の上書き
             r.setReport_date(Date.valueOf(request.getParameter("report_date")));
             r.setTitle(request.getParameter("title"));
             r.setContent(request.getParameter("content"));
+            r.setReport_intime(new Time(System.currentTimeMillis()));
+            r.setReport_outtime(new Time(System.currentTimeMillis()));
             r.setUpdated_at(new Timestamp(System.currentTimeMillis()));
 
             List<String> errors = ReportValidator.validate(r);
@@ -57,12 +62,13 @@ public class ReportsUpdateServlet extends HttpServlet {
 
                 RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/reports/edit.jsp");
                 rd.forward(request, response);
-            } else {
+            } else {//データベース更新
                 em.getTransaction().begin();
                 em.getTransaction().commit();
                 em.close();
                 request.getSession().setAttribute("flush", "更新が完了いたしました");
 
+                //不要データの削除
                 request.getSession().removeAttribute("report_id");
 
                 response.sendRedirect(request.getContextPath() + "/reports/index");

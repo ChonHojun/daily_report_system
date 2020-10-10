@@ -2,7 +2,10 @@ package controllers.reports;
 
 import java.io.IOException;
 import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -58,6 +61,38 @@ public class ReportsCreateServlet extends HttpServlet {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             r.setCreated_at(currentTime);
             r.setUpdated_at(currentTime);
+
+            Time report_intime = new Time(System.currentTimeMillis());
+            String ri_str = request.getParameter("report_intime");
+            if(ri_str != null && !ri_str.equals("")) {
+                //フォーマットを指定する
+                SimpleDateFormat sdf  = new SimpleDateFormat("hh:mm");
+                java.util.Date date;
+                try {
+                    date = sdf.parse((String)request.getParameter("report_intime"));
+                    r.setReport_intime(new Time(date.getTime()));
+                } catch (ParseException e) {
+                    // TODO 自動生成された catch ブロック
+                    e.printStackTrace();
+                }
+            }
+            r.setReport_intime(report_intime);
+
+            Time report_outtime = new Time(System.currentTimeMillis());
+            String ro_str = request.getParameter("report_outtime");
+            if(ro_str != null && !ro_str.equals("")) {
+              //フォーマットを指定する
+                SimpleDateFormat sdf  = new SimpleDateFormat("hh:mm");
+                java.util.Date date;
+                try {
+                    date = sdf.parse((String)request.getParameter("report_outtime"));
+                    r.setReport_outtime(new Time(date.getTime()));
+                } catch (ParseException e) {
+                    // TODO 自動生成された catch ブロック
+                    e.printStackTrace();
+                }
+            }
+            r.setReport_outtime(report_outtime);
 
             List<String> errors = ReportValidator.validate(r);
             if(errors.size() > 0) {
